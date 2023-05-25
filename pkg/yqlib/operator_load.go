@@ -2,9 +2,12 @@ package yqlib
 
 import (
 	"bufio"
+	"bytes"
 	"container/list"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -18,6 +21,7 @@ var LoadYamlPreferences = YamlPreferences{
 
 type loadPrefs struct {
 	loadAsString bool
+	loadAsExec   bool
 	decoder      Decoder
 }
 
@@ -31,6 +35,17 @@ func loadString(filename string) (*CandidateNode, error) {
 	}
 
 	return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: string(filebytes)}}, nil
+}
+
+func loadExec(filename string) (*CandidateNode, error) {
+	
+	args := strings.Fields(filename)
+	proc := exec.Command(args[0], args[1:]...)
+	buf := bytes.NewBuffer([]byte{})
+	proc.Stdout = buf
+	proc.Run()
+
+	return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: string(buf.Bytes())}}, nil
 }
 
 func loadYaml(filename string, decoder Decoder) (*CandidateNode, error) {
@@ -93,6 +108,8 @@ func loadYamlOperator(d *dataTreeNavigator, context Context, expressionNode *Exp
 
 		if loadPrefs.loadAsString {
 			contentsCandidate, err = loadString(filename)
+		} else if loadPrefs.loadAsExec {
+			contentsCandidate, err = loadExec(filename)
 		} else {
 			contentsCandidate, err = loadYaml(filename, loadPrefs.decoder)
 		}

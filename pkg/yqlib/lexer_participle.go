@@ -86,15 +86,17 @@ var participleYqRules = []*participleYqRule{
 	{"Uri", `@uri`, encodeWithIndent(UriOutputFormat, 0), 0},
 	{"SH", `@sh`, encodeWithIndent(ShOutputFormat, 0), 0},
 
-	{"LoadXML", `load_?xml|xml_?load`, loadOp(NewXMLDecoder(ConfiguredXMLPreferences), false), 0},
+	{"LoadXML", `load_?xml|xml_?load`, loadOp(NewXMLDecoder(ConfiguredXMLPreferences), false, false), 0},
 
-	{"LoadBase64", `load_?base64`, loadOp(NewBase64Decoder(), false), 0},
+	{"LoadBase64", `load_?base64`, loadOp(NewBase64Decoder(), false, false), 0},
 
-	{"LoadProperties", `load_?props`, loadOp(NewPropertiesDecoder(), false), 0},
+	{"LoadProperties", `load_?props`, loadOp(NewPropertiesDecoder(), false, false), 0},
 
-	{"LoadString", `load_?str|str_?load`, loadOp(nil, true), 0},
+	{"LoadString", `load_?str|str_?load`, loadOp(nil, true, false), 0},
 
-	{"LoadYaml", `load`, loadOp(NewYamlDecoder(LoadYamlPreferences), false), 0},
+	{"LoadExec", `load_?exec|str_?load`, loadOp(nil, false, true), 0},
+
+	{"LoadYaml", `load`, loadOp(NewYamlDecoder(LoadYamlPreferences), false, false), 0},
 
 	{"SplitDocument", `splitDoc|split_?doc`, opToken(splitDocumentOpType), 0},
 
@@ -517,8 +519,8 @@ func decodeOp(inputFormat InputFormat) yqAction {
 	return opTokenWithPrefs(decodeOpType, nil, prefs)
 }
 
-func loadOp(decoder Decoder, loadAsString bool) yqAction {
-	prefs := loadPrefs{decoder: decoder, loadAsString: loadAsString}
+func loadOp(decoder Decoder, loadAsString bool, loadAsExec bool) yqAction {
+	prefs := loadPrefs{decoder: decoder, loadAsString: loadAsString, loadAsExec: loadAsExec}
 	return opTokenWithPrefs(loadOpType, nil, prefs)
 }
 
